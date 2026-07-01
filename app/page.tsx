@@ -1,13 +1,36 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Chat from "../components/Chat";
+import MemoryPanel from "../components/MemoryPanel";
+import KnowledgeGraph from "../components/KnowledgeGraph";
+import DocumentsPanel from "../components/DocumentsPanel";
 
 export default function Home() {
-  return (
-    <div className="flex bg-black text-white min-h-screen">
-      <Sidebar />
+  const [page, setPage] = useState("chat");
+  const [selectedChatId, setSelectedChatId] = useState("");
 
-      <main className="flex-1 flex items-center justify-center p-10">
-        <Chat />
+  return (
+    <div className="flex min-h-screen bg-black text-white">
+      <Sidebar
+  setPage={setPage}
+  selectedChatId={selectedChatId}
+  setSelectedChatId={setSelectedChatId}
+/>
+
+      <main className="flex-1 p-8">
+        {page === "chat" && (
+  <Chat chatId={selectedChatId} />
+)}
+
+        {page === "memory" && <MemoryPanel />}
+
+        {page === "graph" && <KnowledgeGraph />}
+
+        {page === "documents" && (
+            <DocumentsPanel />
+        )}
       </main>
     </div>
   );
