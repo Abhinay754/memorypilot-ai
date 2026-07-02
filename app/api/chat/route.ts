@@ -138,12 +138,13 @@ memory.push({
     return Response.json({
       reply: response.text,
     });
-  } catch (error) {
-    console.error("API ERROR:", error);
+  } catch (error: any) {
+    console.error("FULL ERROR:", error);
 
     return Response.json(
       {
-        error: String(error),
+        error: error?.message || String(error),
+        stack: error?.stack,
       },
       {
         status: 500,
