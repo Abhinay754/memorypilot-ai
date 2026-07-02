@@ -15,34 +15,43 @@ export async function POST(req: Request) {
     if (text.includes("my name is")) {
   const name = message.split(/my name is/i)[1]?.trim();
 
-  db.prepare(`
-    INSERT INTO profile(key,value)
-    VALUES(?,?)
+  await db.execute({
+  sql: `
+    INSERT INTO profile(key, value)
+    VALUES (?, ?)
     ON CONFLICT(key)
-    DO UPDATE SET value=excluded.value
-  `).run("name", name);
+    DO UPDATE SET value = excluded.value
+  `,
+  args: ["name", name],
+});
 }
 
 if (text.includes("i am") && /\d+/.test(text)) {
   const age = text.match(/\d+/)?.[0];
 
-  db.prepare(`
-    INSERT INTO profile(key,value)
-    VALUES(?,?)
+  await db.execute({
+  sql: `
+    INSERT INTO profile(key, value)
+    VALUES (?, ?)
     ON CONFLICT(key)
-    DO UPDATE SET value=excluded.value
-  `).run("age", age);
+    DO UPDATE SET value = excluded.value
+  `,
+  args: ["age", age],
+});
 }
 
 if (text.includes("i live in")) {
   const city = message.split(/i live in/i)[1]?.trim();
 
-  db.prepare(`
-    INSERT INTO profile(key,value)
-    VALUES(?,?)
+  await db.execute({
+  sql: `
+    INSERT INTO profile(key, value)
+    VALUES (?, ?)
     ON CONFLICT(key)
-    DO UPDATE SET value=excluded.value
-  `).run("city", city);
+    DO UPDATE SET value = excluded.value
+  `,
+  args: ["city", city],
+});
 }
 
 if (text.includes("my name is")) {
@@ -56,16 +65,19 @@ if (text.includes("i am") && /\d+/.test(text)) {
 if (text.includes("favorite color is")) {
   const color = message.split(/favorite color is/i)[1]?.trim();
 
-  db.prepare(`
-    INSERT INTO profile(key,value)
-    VALUES(?,?)
+  await db.execute({
+  sql: `
+    INSERT INTO profile(key, value)
+    VALUES (?, ?)
     ON CONFLICT(key)
-    DO UPDATE SET value=excluded.value
-  `).run("favoriteColor", color);
+    DO UPDATE SET value = excluded.value
+  `,
+  args: ["favoriteColor", color],
+});
 }
 
 if (text.includes("i live in")) {
-  knowledge.city = message.split(/I live in/i)[1]?.trim();
+  knowledge.city = message.split(/i live in/i)[1]?.trim();
 }
 
 if (text.includes("favorite color is")) {
@@ -73,24 +85,30 @@ if (text.includes("favorite color is")) {
     message.split(/favorite color is/i)[1]?.trim();
 }
 
-    db.prepare(
-  "INSERT INTO memories (role, message) VALUES (?, ?)"
-).run("user", message);
+    await db.execute({
+  sql: "INSERT INTO memories (role, message) VALUES (?, ?)",
+  args: ["user", message],
+});
 
 memory.push({
   role: "user",
   text: message,
 });
 
-const rows = db
-  .prepare(
-    "SELECT role, message FROM memories ORDER BY id ASC LIMIT 50"
-  )
-  .all() as { role: string; message: string }[];
+const result = await db.execute(
+  "SELECT role, message FROM memories ORDER BY id ASC LIMIT 50"
+);
 
-const profileRows = db
-  .prepare("SELECT key, value FROM profile")
-  .all() as { key: string; value: string }[];
+const rows = result.rows;
+
+const profileResult = await db.execute(
+  "SELECT key, value FROM profile"
+);
+
+const profileRows = profileResult.rows.map((row) => ({
+  key: String(row.key),
+  value: String(row.value),
+}));
 
 const profile = profileRows
   .map((item) => `${item.key}: ${item.value}`)
@@ -107,9 +125,10 @@ const response = await ai.models.generateContent({
   contents: conversation,
 });
 
-db.prepare(
-  "INSERT INTO memories (role, message) VALUES (?, ?)"
-).run("model", response.text ??"");
+await db.execute({
+  sql: "INSERT INTO memories (role, message) VALUES (?, ?)",
+  args: ["model", response.text ?? ""],
+});
 
 memory.push({
   role: "model",
