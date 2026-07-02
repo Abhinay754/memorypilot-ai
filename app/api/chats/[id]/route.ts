@@ -7,8 +7,15 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  db.prepare("DELETE FROM chat_messages WHERE chat_id = ?").run(id);
-  db.prepare("DELETE FROM chats WHERE id = ?").run(id);
+  await db.execute({
+    sql: "DELETE FROM chat_messages WHERE chat_id = ?",
+    args: [id],
+  });
+
+  await db.execute({
+    sql: "DELETE FROM chats WHERE id = ?",
+    args: [id],
+  });
 
   return NextResponse.json({
     success: true,
