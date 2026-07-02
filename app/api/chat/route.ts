@@ -139,11 +139,11 @@ memory.push({
       reply: response.text,
     });
   } catch (error) {
-    console.error(error);
+    console.error("API ERROR:", error);
 
     return Response.json(
       {
-        error: "Something went wrong",
+        error: String(error),
       },
       {
         status: 500,
